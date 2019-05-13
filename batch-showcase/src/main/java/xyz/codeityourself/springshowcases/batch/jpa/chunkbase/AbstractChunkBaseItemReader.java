@@ -119,10 +119,10 @@ public abstract class AbstractChunkBaseItemReader<I> extends AbstractPagingItemR
             results.clear();
         }
 
-        results.addAll(readItemsOfOnePage());
+        results.addAll(readItemsOfOnePage(getPageSize()));
     }
 
-    protected abstract List<I> readItemsOfOnePage();
+    protected abstract List<I> readItemsOfOnePage(int pageSize);
 
     @Override
     protected void doJumpToPage(int itemIndex) {

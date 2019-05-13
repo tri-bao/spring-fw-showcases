@@ -23,6 +23,8 @@
  */
 package xyz.codeityourself.springshowcases.batch.jpa.chunkbase;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemProcessor;
@@ -40,6 +42,9 @@ public class ChunkBaseProcessor implements ItemProcessor<CustomerTmp, Customer> 
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ChunkBaseProcessor.class);
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     @Autowired
     private CustomerRepository customerRepository;
 
@@ -54,6 +59,9 @@ public class ChunkBaseProcessor implements ItemProcessor<CustomerTmp, Customer> 
         customer.setName(customerTmp.getName());
 
         customerRepository.save(customer);
+
+        // make sure errors are reported to the correct item.
+        entityManager.flush();
 
         return customer;
     }

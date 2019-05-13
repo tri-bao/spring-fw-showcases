@@ -41,7 +41,13 @@ import xyz.codeityourself.springshowcases.batch.jpa.support.ChunkBaseBatchSimula
  * @author Bao Ho (hotribao@gmail.com)
  * @since 03.05.2019
  */
-public class ChunkBaseReader extends AbstractChunkBaseItemReader<CustomerTmp> {
+public class ChunkBaseReader
+    extends
+    // below is 2 types of reader can try
+    AbstractReadAheadItemReader<CustomerTmp> {
+    // AbstractChunkBaseItemReader<CustomerTmp> {
+
+    private int pageId = 0;
 
     @Autowired
     private CustomerTmpRepository customerTmpRepository;
@@ -61,7 +67,7 @@ public class ChunkBaseReader extends AbstractChunkBaseItemReader<CustomerTmp> {
     }
 
     @Override
-    public CustomerTmp read() throws Exception {
+    public CustomerTmp read() {
         CustomerTmp c = super.read();
         if (c != null) {
             ChunkBaseBatchSimulation.triggerErrorOnReading(c.getId());
@@ -70,8 +76,8 @@ public class ChunkBaseReader extends AbstractChunkBaseItemReader<CustomerTmp> {
     }
 
     @Override
-    protected List<CustomerTmp> readItemsOfOnePage() {
-        PageRequest pageRequest = new PageRequest(getPage(), getPageSize(), new Sort(ASC, "id"));
+    protected List<CustomerTmp> readItemsOfOnePage(int pageSize) {
+        PageRequest pageRequest = new PageRequest(pageId++, pageSize, new Sort(ASC, "id"));
         Page<CustomerTmp> page = customerTmpRepository.findAll(pageRequest);
 
         return page.getContent();

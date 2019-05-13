@@ -28,9 +28,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.ChunkListener;
 import org.springframework.batch.core.ItemProcessListener;
+import org.springframework.batch.core.ItemReadListener;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -61,6 +63,8 @@ public class ChunkBaseBatchConfiguration {
     // use this name to trigger the batch job
     public static final String JOB_NAME = "jobChunkBaseShowCase";
 
+    static final String MAIN_STEP_NAME = "copyCustomer";
+
     @Bean(JOB_NAME)
     public Job jobChunkBaseShowCase(JobBuilderFactory jobFactory,
                                     StepBuilderFactory stepFactory) {
@@ -75,7 +79,7 @@ public class ChunkBaseBatchConfiguration {
                        .build())
 
             .next(
-                stepFactory.get("copyCustomer")
+                stepFactory.get(MAIN_STEP_NAME)
 
                     //  - allowStartIfComplete:
                     //      + At step level
@@ -100,7 +104,7 @@ public class ChunkBaseBatchConfiguration {
                     .retryPolicy(new NeverRetryPolicy())
 
                     .listener(chunkListener())
-                    .listener((ItemWriteListener<? super Customer>) itemFailureHandler())
+                    .listener((ItemReadListener<? super CustomerTmp>) itemFailureHandler())
                     .listener((ItemProcessListener<? super CustomerTmp, ? super Customer>) itemFailureHandler())
                     .listener((ItemWriteListener<? super Customer>) itemFailureHandler())
 
@@ -111,6 +115,10 @@ public class ChunkBaseBatchConfiguration {
                     .build()
                  )
 
+            .next(stepFactory.get("sumarizeExecution")
+                      .tasklet(summary())
+                      .build())
+
             .next(stepFactory.get("verifyCopiedCustomerData")
                       .tasklet(verify())
                       .build())
@@ -119,6 +127,7 @@ public class ChunkBaseBatchConfiguration {
     }
 
     @Bean
+    @JobScope
     DefaultItemFailureHandler itemFailureHandler() {
         return new DefaultItemFailureHandler() {
             @Override
@@ -208,5 +217,12 @@ public class ChunkBaseBatchConfiguration {
     @StepScope
     CleanCopiedDataTasklet clean() {
         return new CleanCopiedDataTasklet();
+    }
+
+
+    @Bean
+    @JobScope
+    ExecutionSummaryTasklet summary() {
+        return new ExecutionSummaryTasklet();
     }
 }
