@@ -22,7 +22,8 @@
         <appender-ref ref="STDOUT_SHORT"/>
     </logger>
 
-    <!-- uncomment if wanting to see TX logs
+    <!-- uncomment if wanting to see TX logs and entity manager status -->
+    <!--
     <logger name="org.springframework.transaction" level="debug" additivity="false">
         <appender-ref ref="STDOUT_SHORT"/>
     </logger>
